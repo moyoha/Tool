@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag</title>
+  <style>
+    .box{
+      margin: 50px;
+      width: 500px;
+      height: 300px;
+      border: 1px solid black;
+      position: relative;
+    }
+    .drag{
+      height: 100px;
+      width: 100px;
+      background-color: #cbd;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="drag"></div>
+  </div>
+  <script>
+    let dragEl = document.querySelector(".drag")
+    let container = document.querySelector(".box")
+
+    class Drag {
+      constructor(target, options = { limit: true }) {
+        this.target = target
+        this.options = options
+        this.init()
+      }
+      // 初始化
+      init(){
+        this.target.style.transform = "translate(0px,0px)"
+        this.getBoundary()
+        this.drag()
+      }
+      // 获取父元素的宽高
+      getBoundary() {
+        this.maxWidth = this.target.parentNode.clientWidth
+        this.maxHeight = this.target.parentNode.clientHeight
+      }
+      // 获取目标元素的初始宽高、偏移以及鼠标的起始位置信息
+      getInfo(e) {
+        this.width = this.target.clientWidth
+        this.height = this.target.clientHeight
+
+        this.startX = e.clientX
+        this.startY = e.clientY
+
+        let translateStr = this.target.style.transform
+        const reg = /\d+/g
+        let translateArr = translateStr.match(reg)
+        this.tx = Number(translateArr[0])
+        this.ty = Number(translateArr[1])
+      }
+      // 拖动实现
+      drag() {
+        this.target.addEventListener("mousedown", (e) => {
+          this.getInfo(e)
+          document.onmousemove = (e) => {
+            if(this.options.limit){
+              this.distanceX = Math.max(0, Math.min(this.tx + e.clientX - this.startX, this.maxWidth - this.width))
+              this.distanceY = Math.max(0, Math.min(this.ty + e.clientY - this.startY, this.maxHeight - this.height))
+            }else{
+              this.distanceX = this.tx + e.clientX - this.startX
+              this.distanceY = this.ty + e.clientY - this.startY
+            }
+            this.target.style.transform = `translate(${this.distanceX}px, ${this.distanceY}px)`
+          }
+          document.onmouseup = () => {
+            document.onmousemove = null
+          }
+        })
+      }
+    }
+    
+    /** 注意事项 
+     * 1. 目标元素若存在外边距，那么目标元素在移动时会超出父元素(定位同理)
+     * 2. 父元素若存在内边距，那么目标元素在移动时也会超出父元素
+     */
+    new Drag(dragEl)
+  </script>
+</body>
+</html>
